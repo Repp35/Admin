@@ -112,8 +112,7 @@ textarea.field-inp{resize:none;line-height:1.5}
 .cv-name{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
 .cv-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* mensagens */
-.cv-msgs{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:0}
-.date-sep{text-align:center;margin:10px 0 6px;pointer-events:none}
+.cv-msgs{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:0;touch-action:pan-y}.date-sep{text-align:center;margin:10px 0 6px;pointer-events:none}
 .date-sep span{font-size:11px;color:var(--fg2);background:var(--surface2);border:1px solid var(--outline);padding:3px 12px;border-radius:99px}
 /* wrapper de bolha */
 .bw{display:flex;flex-direction:column;margin-bottom:2px}
@@ -151,7 +150,7 @@ textarea.field-inp{resize:none;line-height:1.5}
 .ci-assign-chip.mine{background:rgba(74,173,124,.15);color:var(--green)}
 .ci-assign-chip.other{background:rgba(168,136,56,.12);color:var(--yellow)}
 .cv-bar{display:flex;align-items:flex-end;gap:8px;padding:8px 12px 20px;border-top:1px solid var(--outline);background:var(--surface);flex-shrink:0}
-.cv-ta{flex:1;background:var(--surface2);border:1px solid var(--outline);border-radius:20px;padding:8px 14px;font-size:14px;color:var(--fg);resize:none;max-height:100px;overflow-y:auto;line-height:1.4;transition:.12s}
+.cv-ta{flex:1;background:var(--surface2);border:1px solid var(--outline);border-radius:20px;padding:8px 14px;font-size:14px;color:var(--fg);resize:none;max-height:100px;overflow-y:auto;line-height:1.4;transition:.12s;touch-action:pan-y}
 .cv-ta:focus{border-color:var(--accent)}
 .cv-ta::placeholder{color:var(--muted)}
 .send-btn{width:40px;height:40px;border-radius:20px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:.12s}
@@ -339,8 +338,8 @@ textarea.field-inp{resize:none;line-height:1.5}
 <div class="screen" id="s-chat-view">
   <div class="cv-header">
     <div class="icon-btn" onclick="goBack()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div>
-    <div class="av" id="cv-av" style="width:38px;height:38px;font-size:14px;flex-shrink:0">U</div>
-    <div class="cv-header-info">
+    <div class="av" id="cv-av" style="width:38px;height:38px;font-size:14px;flex-shrink:0;cursor:pointer" onclick="openUserSheet()">U</div>
+    <div class="cv-header-info" onclick="openUserSheet()" style="cursor:pointer">
       <div class="cv-name" id="cv-name">Usuário</div>
       <div class="cv-sub" id="cv-sub"></div>
     </div>
@@ -348,7 +347,6 @@ textarea.field-inp{resize:none;line-height:1.5}
       <svg id="assign-icon-svg" viewBox="0 0 24 24" style="fill:var(--muted)"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
       <div class="assign-dot" id="assign-dot" style="display:none"></div>
     </div>
-    <div class="icon-btn" onclick="openUserSheet()"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></div>
   </div>
   <div class="cv-msgs" id="cv-msgs"></div>
   <div class="cv-bar">
@@ -389,6 +387,7 @@ textarea.field-inp{resize:none;line-height:1.5}
       <div class="inline-row"><input class="field-inp" id="adm-credits-inp" type="number" placeholder="Ex: 100"><button class="btn sm" onclick="setUserCredits()">Definir</button></div>
     </div>
     <button class="btn danger" style="margin-top:4px" onclick="banUser()">Banir / Desbanir</button>
+    <button class="btn danger" id="sheet-delete-chat-btn" style="margin-top:4px;display:none" onclick="closeSheet();confirmDeleteChat()">Apagar conversa</button>
   </div>
 </div>
 
@@ -959,9 +958,26 @@ document.addEventListener('visibilitychange',()=>{
   }
 });
 
+function confirmDeleteChat(){
+  if(!chatUserKey)return;
+  showModal('Apagar conversa','Todas as mensagens serão apagadas permanentemente. Isso também some no app do usuário.',[
+    {label:'Cancelar',cls:'mb-cancel',fn:closeModal},
+    {label:'Apagar tudo',cls:'mb-confirm',fn:async()=>{
+      closeModal();
+      await db.from('chats').delete().eq('user_key',chatUserKey);
+      await db.from('chat_assignments').delete().eq('user_key',chatUserKey);
+      toast('Conversa apagada.');
+      goBack();
+      renderChatList();
+    }},
+  ]);
+}
+
 // ── USER SHEET ──
-function openUserSheet(){if(chatUserKey)openUserInfo(chatUserKey);}
-async function openUserInfo(email){
+function openUserSheet(){
+  if(chatUserKey)openUserInfo(chatUserKey,true);
+}
+async function openUserInfo(email,fromChat=false){
   const {data:u}=await db.from('users').select('*').eq('email',email).single();
   if(!u)return;
   sheetUserEmail=email;
@@ -977,6 +993,7 @@ async function openUserInfo(email){
   document.getElementById('adm-credits-inp').value='';
   document.getElementById('adm-toggle').classList.remove('open');
   document.getElementById('adm-body').classList.remove('open');
+  document.getElementById('sheet-delete-chat-btn').style.display=fromChat?'flex':'none';
   document.getElementById('user-sheet').classList.add('on');
   document.getElementById('sheet-ov').classList.add('on');
 }
