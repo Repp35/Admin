@@ -921,8 +921,10 @@ async function sendMsg(){
 }
 
 // ── REALTIME CHAT ──
+let _realtimeChannel=null;
 function startRealtimeChat(){
-  db.channel('admin-chat')
+  if(_realtimeChannel){db.removeChannel(_realtimeChannel);}
+  _realtimeChannel=db.channel('admin-chat')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'chats'},()=>{
       updateBadges();
       if(document.getElementById('s-chat-view').classList.contains('on')&&chatUserKey){
@@ -930,6 +932,7 @@ function startRealtimeChat(){
         db.from('chats').update({read_by_admin:true}).eq('user_key',chatUserKey).eq('role','user').then(()=>{});
       }
       if(document.getElementById('s-chat').classList.contains('on'))renderChatList();
+      if(document.getElementById('s-dash').classList.contains('on'))renderDash();
     })
     .on('postgres_changes',{event:'*',schema:'public',table:'chat_assignments'},()=>{
       if(document.getElementById('s-chat-view').classList.contains('on')&&chatUserKey){
@@ -938,7 +941,23 @@ function startRealtimeChat(){
       if(document.getElementById('s-chat').classList.contains('on'))renderChatList();
     })
     .subscribe();
+
+  // poll backup a cada 5s só pra lista e dash
+  setInterval(()=>{
+    if(document.getElementById('s-chat').classList.contains('on'))renderChatList();
+    if(document.getElementById('s-dash').classList.contains('on'))renderDash();
+  }, 5000);
 }
+
+// reconecta realtime ao voltar pro app (saiu do navegador/minimizou)
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&currentAdmin){
+    startRealtimeChat();
+    if(document.getElementById('s-chat-view').classList.contains('on')&&chatUserKey)renderMsgs();
+    if(document.getElementById('s-chat').classList.contains('on'))renderChatList();
+    if(document.getElementById('s-dash').classList.contains('on'))renderDash();
+  }
+});
 
 // ── USER SHEET ──
 function openUserSheet(){if(chatUserKey)openUserInfo(chatUserKey);}
@@ -1215,65 +1234,26 @@ function confirmCrop(){
 }
 
 // ── PROFILE ──
-function fixExifOrientation(file, callback){
-  const r=new FileReader();
-  r.onload=e=>{
-    const view=new DataView(e.target.result);
-    if(view.getUint16(0,false)!==0xFFD8){callback(null);return;}
-    let offset=2;
-    while(offset<view.byteLength){
-      const marker=view.getUint16(offset,false);offset+=2;
-      if(marker===0xFFE1){
-        if(view.getUint32(offset+=2,false)!==0x45786966){callback(null);return;}
-        const little=view.getUint16(offset+=6,false)===0x4949;
-        offset+=view.getUint32(offset+4,little);
-        const tags=view.getUint16(offset,little);offset+=2;
-        for(let i=0;i<tags;i++){
-          if(view.getUint16(offset+(i*12),little)===0x0112){
-            callback(view.getUint16(offset+(i*12)+8,little));return;
-          }
-        }
-      } else if((marker&0xFF00)!==0xFF00) break;
-      else offset+=view.getUint16(offset,false);
-    }
-    callback(null);
-  };
-  r.readAsArrayBuffer(file);
-}
-
 function handleProfImg(input){
   const f=input.files[0];if(!f)return;
-  fixExifOrientation(f, orientation=>{
+  createImageBitmap(f).then(bitmap=>{
+    const canvas=document.createElement('canvas');
+    canvas.width=bitmap.width;
+    canvas.height=bitmap.height;
+    canvas.getContext('2d').drawImage(bitmap,0,0);
+    openCropper(canvas.toDataURL('image/jpeg',0.95),dataUrl=>{
+      const big=document.getElementById('prof-av');
+      big.innerHTML=`<img src="${dataUrl}">`;
+      big._img=dataUrl;
+    });
+  }).catch(()=>{
+    // fallback pro método antigo se createImageBitmap não suportar
     const r=new FileReader();
-    r.onload=e=>{
-      if(!orientation||orientation===1){
-        openCropper(e.target.result, dataUrl=>{
-          const big=document.getElementById('prof-av');
-          big.innerHTML=`<img src="${dataUrl}">`;
-          big._img=dataUrl;
-        });
-        return;
-      }
-      // corrige orientação desenhando num canvas rotacionado
-      const img=new Image();
-      img.onload=()=>{
-        const canvas=document.createElement('canvas');
-        const sw=img.width,sh=img.height;
-        const needsSwap=orientation>=5&&orientation<=8;
-        canvas.width=needsSwap?sh:sw;
-        canvas.height=needsSwap?sw:sh;
-        const ctx=canvas.getContext('2d');
-        const t={1:[1,0,0,1,0,0],2:[-1,0,0,1,sw,0],3:[-1,0,0,-1,sw,sh],4:[1,0,0,-1,0,sh],5:[0,1,1,0,0,0],6:[0,1,-1,0,sh,0],7:[0,-1,-1,0,sh,sw],8:[0,-1,1,0,0,sw]}[orientation];
-        ctx.transform(...t);
-        ctx.drawImage(img,0,0);
-        openCropper(canvas.toDataURL('image/jpeg',0.95), dataUrl=>{
-          const big=document.getElementById('prof-av');
-          big.innerHTML=`<img src="${dataUrl}">`;
-          big._img=dataUrl;
-        });
-      };
-      img.src=e.target.result;
-    };
+    r.onload=e=>openCropper(e.target.result,dataUrl=>{
+      const big=document.getElementById('prof-av');
+      big.innerHTML=`<img src="${dataUrl}">`;
+      big._img=dataUrl;
+    });
     r.readAsDataURL(f);
   });
 }
