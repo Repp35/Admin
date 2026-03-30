@@ -244,6 +244,11 @@ textarea.field-inp{resize:none;line-height:1.5}
 .crop-cancel{background:var(--surface2);color:var(--fg2);border:1px solid var(--outline2)}
 .crop-confirm{background:var(--accent);color:#fff;border:none}
 .crop-confirm:active,.crop-cancel:active{opacity:.8}
+/* EMPTY & LOADING STATES */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:48px 24px;color:var(--muted);font-size:13px;text-align:center;line-height:1.5}
+.empty svg{width:36px;height:36px;fill:var(--muted);opacity:.4;margin-bottom:4px}
+.loading-state{display:flex;align-items:center;justify-content:center;gap:10px;padding:32px 24px;color:var(--muted);font-size:13px}
+.loading-state::before{content:'';width:16px;height:16px;border:2px solid var(--outline2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 /* TOAST */
 .toast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface3);border:1px solid var(--outline2);color:var(--fg);font-size:13px;font-weight:500;padding:10px 18px;border-radius:99px;z-index:600;opacity:0;transition:.22s;white-space:nowrap;pointer-events:none}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -307,8 +312,8 @@ textarea.field-inp{resize:none;line-height:1.5}
         <div class="stat-card"><div class="stat-ico ye"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg></div><div class="stat-num" id="ds-prods">—</div><div class="stat-lbl">Produtos</div></div>
       </div>
     </div>
-    <div><div class="section-label">Mensagens recentes</div><div class="card" id="dash-msgs"><div class="empty">Carregando…</div></div></div>
-    <div><div class="section-label">Usuários recentes</div><div class="card" id="dash-users"><div class="empty">Carregando…</div></div></div>
+    <div><div class="section-label">Mensagens recentes</div><div class="card" id="dash-msgs"><div class="loading-state">Carregando…</div></div></div>
+    <div><div class="section-label">Usuários recentes</div><div class="card" id="dash-users"><div class="loading-state">Carregando…</div></div></div>
   </div></div>
   <div class="bnav">
     <div class="bn-item on" onclick="goTab('dash')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="bn-label">Início</span></div>
@@ -321,7 +326,7 @@ textarea.field-inp{resize:none;line-height:1.5}
 <!-- ══ CHAT LIST ══ -->
 <div class="screen" id="s-chat">
   <div class="topbar"><div class="tb-title">Suporte</div><div class="av" id="chat-av" onclick="goScreen('s-profile')">A</div></div>
-  <div class="scroll"><div class="chat-pad" id="chat-list"><div class="empty">Carregando…</div></div></div>
+  <div class="scroll"><div class="chat-pad" id="chat-list"><div class="loading-state">Carregando…</div></div></div>
   <div class="bnav">
     <div class="bn-item" onclick="goTab('dash')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="bn-label">Início</span></div>
     <div class="bn-item on" onclick="goTab('chat')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><span class="bn-badge" id="badge2" style="display:none">0</span><span class="bn-label">Suporte</span></div>
@@ -390,7 +395,7 @@ textarea.field-inp{resize:none;line-height:1.5}
 <!-- ══ USUÁRIOS ══ -->
 <div class="screen" id="s-users">
   <div class="topbar"><div class="tb-title">Usuários</div><div class="av" id="users-av" onclick="goScreen('s-profile')">A</div></div>
-  <div class="scroll"><div class="users-pad" id="users-list"><div class="empty">Carregando…</div></div></div>
+  <div class="scroll"><div class="users-pad" id="users-list"><div class="loading-state">Carregando…</div></div></div>
   <div class="bnav">
     <div class="bn-item" onclick="goTab('dash')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="bn-label">Início</span></div>
     <div class="bn-item" onclick="goTab('chat')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><span class="bn-badge" id="badge4" style="display:none">0</span><span class="bn-label">Suporte</span></div>
@@ -402,7 +407,7 @@ textarea.field-inp{resize:none;line-height:1.5}
 <!-- ══ PRODUTOS ══ -->
 <div class="screen" id="s-prod">
   <div class="topbar"><div class="tb-title">Produtos</div><div class="av" id="prod-av" onclick="goScreen('s-profile')">A</div></div>
-  <div class="scroll"><div class="prod-pad" id="prod-list"><div class="empty">Carregando…</div></div></div>
+  <div class="scroll"><div class="prod-pad" id="prod-list"><div class="loading-state">Carregando…</div></div></div>
   <div class="fab" onclick="openProdForm(null)"><svg viewBox="0 0 24 24"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"/></svg>Novo produto</div>
   <div class="bnav">
     <div class="bn-item" onclick="goTab('dash')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="bn-label">Início</span></div>
@@ -613,7 +618,7 @@ async function renderDash(){
       <div class="li-body"><div class="li-name">${u.nome||m.user_key}</div><div class="li-sub">${esc(m.message||'')}</div></div>
       <div class="li-right"><div class="li-time">${fmtT(m.created_at)}</div>${unread?'<span class="chip re">Nova</span>':''}</div>
     </div>`;
-  }).join(''):'<div class="empty">Nenhuma mensagem</div>';
+  }).join(''):'<div class="empty"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Nenhuma mensagem ainda</div>';
 
   const ul=document.getElementById('dash-users');
   ul.innerHTML=(recentUsers||[]).length?(recentUsers).map(u=>`
@@ -621,7 +626,7 @@ async function renderDash(){
       <div class="li-av">${avHtml(u,u.email)}</div>
       <div class="li-body"><div class="li-name">${u.nome||u.email}</div><div class="li-sub">${u.email}</div></div>
       <div class="li-right"><span class="chip ${pc(u.plan)}">${u.plan||'básico'}</span></div>
-    </div>`).join(''):'<div class="empty">Nenhum usuário</div>';
+    </div>`).join(''):'<div class="empty"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Nenhum usuário cadastrado</div>';
 
   updateBadges();
 }
@@ -639,7 +644,7 @@ async function updateBadges(){
 async function renderUsersList(){
   const {data}=await db.from('users').select('*').order('created_at',{ascending:false});
   const el=document.getElementById('users-list');
-  if(!data?.length){el.innerHTML='<div class="empty">Nenhum usuário cadastrado</div>';return;}
+  if(!data?.length){el.innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Nenhum usuário cadastrado</div>';return;}
   el.innerHTML=data.map(u=>`
     <div class="card" style="margin-bottom:0">
       <div class="list-item" onclick="openUserInfo('${u.email}')">
@@ -699,7 +704,7 @@ async function renderChatList(){
         ${assignLine}
       </div>
     </div>`;
-  }).join(''):'<div class="empty">Nenhuma conversa ainda</div>';
+  }).join(''):'<div class="empty"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Nenhuma conversa ainda</div>';
   updateBadges();
 }
 
@@ -1011,7 +1016,7 @@ async function renderProdList(){
       </div>
       <div class="prod-right"><div class="prod-sales-n">${sales}</div><div class="prod-sales-l">vendas</div></div>
     </div>`;
-  }).join(''):'<div class="empty">Nenhum produto.<br>Toque em + para criar.</div>';
+  }).join(''):'<div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg>Nenhum produto criado ainda</div>';
 }
 
 async function openProdForm(id){
