@@ -93,6 +93,8 @@
 }
 
 * { box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent; }
+html { background:#141218; }
+html[data-theme="light"] { background:#FFFBFE; }
 html,body { height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--fg);font-family:'Google Sans',system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;touch-action:manipulation;overscroll-behavior:none; }
 button { font-family:inherit;cursor:pointer;border:none;background:none;color:inherit; }
 input,textarea,select { font-family:inherit;color:inherit;background:none;border:none;outline:none; }
@@ -154,14 +156,8 @@ img { display:block;object-fit:cover; }
 }
 
 /* ── SCREENS — swipe-aware ── */
-.screen { position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;
-  transition:opacity .22s,transform .25s cubic-bezier(.4,0,.2,1);will-change:transform,opacity; }
-.screen.on { opacity:1;pointer-events:all;transform:translateX(0) !important; }
-.screen.slide-left { transform:translateX(-40px); }
-.screen.slide-right { transform:translateX(40px); }
-/* sub-screens slide from right */
-.screen.sub { transform:translateX(100%); }
-.screen.sub.on { transform:translateX(0); }
+.screen { position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;will-change:transform,opacity; }
+.screen.on { opacity:1;pointer-events:all; }
 
 /* ── SCROLL ── */
 .scroll {
@@ -1439,37 +1435,66 @@ function _cancelPending(el) {
 }
 
 function _animateScreenTransition(cur, next, isPoppingBack, isTabSwitch, tabDirection) {
-  const DUR = isTabSwitch ? 320 : 270;
-  const ease = 'cubic-bezier(.4,0,.2,1)';
-  const easeTab = 'cubic-bezier(.25,0,.2,1)'; // suave e rápido pra tab
+  const DUR_TAB = 300;
+  const DUR = 270;
+  const easeSlide = 'cubic-bezier(.4,0,.2,1)';
   const easeSpring = 'cubic-bezier(.34,1.2,.64,1)';
 
   _cancelPending(cur);
   _cancelPending(next);
 
-  if (!cur) { next.classList.add('on'); return; }
+  // Primeira tela: aparece direto sem animação
+  if (!cur) {
+    next.style.cssText = '';
+    next.classList.add('on');
+    return;
+  }
 
   const isSlideUp = SLIDE_UP_SCREENS.has(next?.id);
   const isSlideDown = isPoppingBack && SLIDE_UP_SCREENS.has(cur?.id);
 
+  if (isTabSwitch) {
+    // ── TAB SWITCH: slide horizontal completo ──
+    const goRight = tabDirection > 0;
+
+    // Posiciona next fora da tela imediatamente (sem transição)
+    next.style.transition = 'none';
+    next.style.transform = goRight ? 'translateX(100%)' : 'translateX(-100%)';
+    next.style.opacity = '1';
+    next.classList.add('on');
+
+    // Força reflow para o browser registrar a posição inicial
+    next.getBoundingClientRect();
+
+    // Anima ambos juntos
+    const tr = `transform ${DUR_TAB}ms ${easeSlide}`;
+    cur.style.transition = tr;
+    cur.style.transform = goRight ? 'translateX(-100%)' : 'translateX(100%)';
+    next.style.transition = tr;
+    next.style.transform = 'translateX(0)';
+
+    const t = setTimeout(() => {
+      cur.classList.remove('on');
+      cur.style.cssText = '';
+      next.style.cssText = '';
+      _cleanupTimers.delete(cur);
+      _cleanupTimers.delete(next);
+    }, DUR_TAB + 20);
+    _cleanupTimers.set(cur, t);
+    return;
+  }
+
+  // ── OUTRAS TRANSIÇÕES: fade/slide normal ──
   if (cur && cur !== next) {
-    cur.style.transition = `transform ${DUR}ms ${isTabSwitch ? easeTab : ease}, opacity ${DUR}ms ${ease}`;
-    if (isTabSwitch) {
-      // slide completo pra esquerda ou direita
-      cur.style.transform = tabDirection > 0 ? 'translateX(-100%)' : 'translateX(100%)';
-      cur.style.opacity = '0.6';
-    } else if (isSlideDown) {
-      cur.style.transform = 'translateY(100%)';
-      cur.style.opacity = '0';
+    cur.style.transition = `transform ${DUR}ms ${easeSlide}, opacity ${DUR}ms ${easeSlide}`;
+    if (isSlideDown) {
+      cur.style.transform = 'translateY(100%)'; cur.style.opacity = '0';
     } else if (isPoppingBack) {
-      cur.style.transform = 'translateX(100%)';
-      cur.style.opacity = '0';
+      cur.style.transform = 'translateX(100%)'; cur.style.opacity = '0';
     } else if (isSlideUp) {
-      cur.style.transform = 'scale(.96) translateY(8px)';
-      cur.style.opacity = '0.4';
+      cur.style.transform = 'scale(.96) translateY(8px)'; cur.style.opacity = '0.4';
     } else {
-      cur.style.transform = 'translateX(-30%) scale(.97)';
-      cur.style.opacity = '0.3';
+      cur.style.transform = 'translateX(-30%) scale(.97)'; cur.style.opacity = '0.3';
     }
     const t = setTimeout(() => {
       cur.classList.remove('on');
@@ -1480,30 +1505,22 @@ function _animateScreenTransition(cur, next, isPoppingBack, isTabSwitch, tabDire
   }
 
   // Posição inicial do next
-  if (isTabSwitch) {
-    // entra do lado oposto ao que a atual saiu
-    next.style.transform = tabDirection > 0 ? 'translateX(100%)' : 'translateX(-100%)';
-    next.style.opacity = '0.6';
-  } else if (isSlideUp) {
-    next.style.transform = 'translateY(100%)';
-    next.style.opacity = '1';
+  if (isSlideUp) {
+    next.style.transform = 'translateY(100%)'; next.style.opacity = '1';
   } else if (isPoppingBack) {
     if (isSlideDown) {
-      next.style.transform = 'scale(.95) translateY(12px)';
-      next.style.opacity = '0.4';
+      next.style.transform = 'scale(.95) translateY(12px)'; next.style.opacity = '0.4';
     } else {
-      next.style.transform = 'translateX(-20%) scale(.97)';
-      next.style.opacity = '0.4';
+      next.style.transform = 'translateX(-20%) scale(.97)'; next.style.opacity = '0.4';
     }
   } else {
-    next.style.transform = 'translateX(100%)';
-    next.style.opacity = '1';
+    next.style.transform = 'translateX(100%)'; next.style.opacity = '1';
   }
 
   next.classList.add('on');
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    const easeIn = isTabSwitch ? easeTab : (isSlideUp ? ease : easeSpring);
-    next.style.transition = `transform ${DUR}ms ${easeIn}, opacity ${DUR}ms ${ease}`;
+    const easeIn = isSlideUp ? easeSlide : easeSpring;
+    next.style.transition = `transform ${DUR}ms ${easeIn}, opacity ${DUR}ms ${easeSlide}`;
     next.style.transform = 'translateX(0) translateY(0) scale(1)';
     next.style.opacity = '1';
     const t2 = setTimeout(() => { next.style.cssText = ''; _cleanupTimers.delete(next); }, DUR + 30);
