@@ -89,7 +89,7 @@
 }
 
 * { box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent; }
-html,body { height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--fg);font-family:'Google Sans',system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased; }
+html,body { height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--fg);font-family:'Google Sans',system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;touch-action:manipulation; }
 button { font-family:inherit;cursor:pointer;border:none;background:none;color:inherit; }
 input,textarea,select { font-family:inherit;color:inherit;background:none;border:none;outline:none; }
 * { scrollbar-width:thin;scrollbar-color:var(--outline) transparent; }
@@ -634,9 +634,10 @@ textarea.field-inp { resize:none;line-height:1.5; }
 .loading-ov {
   position:fixed;inset:0;background:var(--bg);z-index:900;
   display:flex;align-items:center;justify-content:center;flex-direction:column;
-  gap:16px;transition:opacity .3s;
+  gap:16px;transition:opacity .25s;
 }
 .loading-ov.hide { opacity:0;pointer-events:none; }
+.loading-ov.gone { display:none; }
 .loading-spinner {
   width:48px;height:48px;border:4px solid var(--outline);
   border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;
@@ -1238,6 +1239,12 @@ function _animateScreenTransition(cur, next, isPoppingBack, isTabSwitch, tabDire
   // Cancela timeouts pendentes para evitar remoção indevida de .on
   _cancelPending(cur);
   _cancelPending(next);
+
+  // Primeira tela (sem tela anterior): aparece direto, sem animação
+  if (!cur) {
+    next.classList.add('on');
+    return;
+  }
 
   const isSlideUp = SLIDE_UP_SCREENS.has(next?.id);
   const isSlideDown = isPoppingBack && SLIDE_UP_SCREENS.has(cur?.id);
@@ -2091,6 +2098,7 @@ function startRealtimeChat() {
         else fireNotif('Ghost Admin', `Admin: ${(msg.message||'').slice(0,80)}`, () => openAdminChat(msg.sender_id));
       }
     })
+    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'chat_assignments'}, () => {
       if (document.getElementById('s-chat-view').classList.contains('on') && chatUserKey) loadAssignment(chatUserKey);
       if (document.getElementById('s-chat').classList.contains('on')) renderChatList();
     })
@@ -2449,7 +2457,11 @@ function pc(plan){return{starter:'pu',pro:'pu',premium:'re',basico:'gr'}[plan]||
 // INIT
 // ════════════════════════════════════════════
 (async function(){
-  const hideLoading = () => document.getElementById('loadingOv').classList.add('hide');
+  const ov = document.getElementById('loadingOv');
+  const hideLoading = () => {
+    ov.classList.add('hide');
+    setTimeout(() => ov.classList.add('gone'), 300);
+  };
   // Garantia: loading some em no máximo 6s mesmo se tudo travar
   const safetyTimer = setTimeout(()=>{ hideLoading(); goScreen('s-setup',false); }, 6000);
   try {
@@ -2466,7 +2478,8 @@ function pc(plan){return{starter:'pu',pro:'pu',premium:'re',basico:'gr'}[plan]||
     goScreen('s-setup',false);
   } finally {
     clearTimeout(safetyTimer);
-    hideLoading();
+    // Pequeno delay para garantir que a tela já renderizou antes de sumir o loading
+    requestAnimationFrame(() => requestAnimationFrame(() => hideLoading()));
   }
 })();
 
