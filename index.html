@@ -657,11 +657,12 @@ textarea.field-inp { resize:none;line-height:1.5; }
   border-radius:99px;background:rgba(255,255,255,.5);flex-shrink:0;
 }
 /* ═══ CHAT MODE SELECTOR ═══ */
-.chat-mode-bar { display:flex;align-items:center;justify-content:center;padding:10px 16px 4px;gap:8px; }
-.chat-mode-pill { display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:99px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;user-select:none; }
-.chat-mode-pill.active { background:var(--accent-cont);color:var(--accent-on-cont); }
-.chat-mode-pill svg { width:15px;height:15px;fill:currentColor; }
-.chat-mode-sep { width:1px;height:18px;background:var(--outline); }
+.chat-mode-bar { display:flex;align-items:center;justify-content:center;padding:6px 16px 2px; }
+.chat-mode-tabs { display:flex;background:var(--surface2);border-radius:10px;padding:3px;gap:2px; }
+.chat-mode-pill { display:flex;align-items:center;gap:5px;padding:5px 14px;border-radius:8px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;user-select:none; }
+.chat-mode-pill.active { background:var(--surface);color:var(--fg);box-shadow:var(--shadow1); }
+.chat-mode-pill svg { width:13px;height:13px;fill:currentColor; }
+.chat-mode-sep { display:none; }
 .admin-item { display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;transition:.12s;border-bottom:1px solid var(--outline-var); }
 .admin-item:active { background:var(--surface1); }
 .admin-item:last-child { border-bottom:none; }
@@ -671,6 +672,28 @@ textarea.field-inp { resize:none;line-height:1.5; }
 .ai-name { font-size:14px;font-weight:500;color:var(--fg); }
 .ai-sub { font-size:12px;color:var(--muted);margin-top:2px; }
 .ai-unread { min-width:20px;height:20px;border-radius:99px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px; }
+/* ═══ COMMAND TERMINAL ═══ */
+.cmd-terminal {
+  background:var(--bg);border:1px solid var(--outline-var);border-radius:var(--r);
+  overflow:hidden;font-family:'Courier New',monospace;font-size:12px;
+}
+.cmd-output {
+  max-height:150px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:3px;
+  min-height:36px;
+}
+.cmd-echo { color:var(--fg2); }
+.cmd-result { color:var(--green);white-space:pre-wrap; }
+.cmd-result.err { color:var(--red); }
+.cmd-input-row {
+  display:flex;align-items:center;gap:8px;padding:10px 12px;
+  border-top:1px solid var(--outline-var);background:var(--surface1);
+}
+.cmd-prompt { color:var(--accent);font-weight:700;flex-shrink:0;font-size:13px; }
+.cmd-inp {
+  flex:1;background:none;border:none;outline:none;color:var(--fg);
+  font-family:'Courier New',monospace;font-size:12px;
+}
+.cmd-inp::placeholder { color:var(--muted); }
 .msg-actions-ov { position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center; }
 .msg-actions-box { background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:8px 0 24px; }
 .msg-actions-preview { padding:12px 20px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--outline-var);margin-bottom:4px;max-height:60px;overflow:hidden; }
@@ -779,14 +802,15 @@ textarea.field-inp { resize:none;line-height:1.5; }
 <div class="screen" id="s-chat">
   <div class="topbar"><div class="tb-title">Suporte</div><div class="av" id="chat-av" onclick="goScreen('s-settings')">A</div></div>
   <div class="chat-mode-bar">
-    <div class="chat-mode-pill active" id="mode-users" onclick="setChatMode('users')">
-      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-      Usuários
-    </div>
-    <div class="chat-mode-sep"></div>
-    <div class="chat-mode-pill" id="mode-admins" onclick="setChatMode('admins')">
-      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-      Admins
+    <div class="chat-mode-tabs">
+      <div class="chat-mode-pill active" id="mode-users" onclick="setChatMode('users')">
+        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        Usuários
+      </div>
+      <div class="chat-mode-pill" id="mode-admins" onclick="setChatMode('admins')">
+        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+        Admins
+      </div>
     </div>
   </div>
   <div class="scroll"><div class="chat-pad" id="chat-list"><div class="loading-state">Carregando…</div></div></div>
@@ -988,6 +1012,19 @@ textarea.field-inp { resize:none;line-height:1.5; }
         </label>
       </div>
     </div>
+    <!-- Terminal -->
+    <div class="settings-section" id="cmd-section" style="display:none">
+      <div class="settings-section-title">Terminal</div>
+      <div style="padding:0 4px 4px">
+        <div class="cmd-terminal">
+          <div class="cmd-output" id="cmd-output"><div class="cmd-result" style="color:var(--muted)">Ghost Terminal v1 — .help para comandos</div></div>
+          <div class="cmd-input-row">
+            <span class="cmd-prompt">→</span>
+            <input class="cmd-inp" id="cmd-input" type="text" placeholder="Digite um comando..." autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')runCommand()">
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Conta -->
     <div class="settings-section">
       <div class="settings-section-title">Conta</div>
@@ -1069,6 +1106,109 @@ const LS = {
   set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}},
   del:k=>{try{localStorage.removeItem(k)}catch{}}
 };
+
+// ════════════════════════════════════════════
+// GHOST CONFIG — sistema de regras internas
+// ════════════════════════════════════════════
+const _GCK = '\x72\x75\x6c\x65\x73\x5f\x76\x31'; // 'rules_v1'
+const _RST = ['\x74\x65\x73\x74\x65']; // ['teste']
+let _gcCache = {};
+
+async function _gcLoad() {
+  try {
+    const {data} = await db.from('ghost_cfg').select('value').eq('key', _GCK).maybeSingle();
+    _gcCache = data?.value || {};
+  } catch { _gcCache = {}; }
+  return _gcCache;
+}
+async function _gcSave(v) {
+  _gcCache = v;
+  try {
+    await db.from('ghost_cfg').upsert({key: _GCK, value: v, updated_at: new Date().toISOString()}, {onConflict:'key'});
+  } catch(e) { console.error('ghost_cfg save error', e); }
+}
+
+function _isRestricted() {
+  return _RST.includes((currentAdmin?.username||'').toLowerCase());
+}
+function _isHiddenById(id) {
+  if (!_isRestricted()) return false;
+  return (_gcCache.hidden||[]).some(h => h.id === id);
+}
+function _isHiddenByName(name) {
+  if (!_isRestricted()) return false;
+  return (_gcCache.hidden||[]).some(h =>
+    (h.display_name||'').toLowerCase() === (name||'').toLowerCase() ||
+    (h.username||'').toLowerCase() === (name||'').toLowerCase()
+  );
+}
+
+async function runCommand() {
+  const inp = document.getElementById('cmd-input');
+  const out = document.getElementById('cmd-output');
+  const raw = inp.value.trim();
+  if (!raw) return;
+  inp.value = '';
+  const echoEl = document.createElement('div');
+  echoEl.className = 'cmd-echo';
+  echoEl.textContent = '→ ' + raw;
+  out.appendChild(echoEl);
+  const result = await _processCmd(raw);
+  const resEl = document.createElement('div');
+  resEl.className = 'cmd-result' + (result.ok ? '' : ' err');
+  resEl.textContent = result.msg;
+  out.appendChild(resEl);
+  out.scrollTop = out.scrollHeight;
+}
+
+async function _processCmd(raw) {
+  if (!raw.startsWith('.')) return { ok:false, msg:'Comandos começam com "."' };
+  const parts = raw.slice(1).trim().split(/\s+/);
+  const action = parts[0]?.toLowerCase();
+
+  if (action === 'hide') {
+    const target = (parts[1]||'').replace('@','').toLowerCase();
+    if (!target) return { ok:false, msg:'Uso: .hide @username' };
+    const {data} = await db.from('admins').select('*').ilike('username', target).maybeSingle();
+    if (!data) return { ok:false, msg:`Admin "@${target}" não encontrado.` };
+    if (data.id === currentAdmin.id) return { ok:false, msg:'Não pode ocultar a si mesmo.' };
+    const cfg = {..._gcCache};
+    cfg.hidden = cfg.hidden || [];
+    if (cfg.hidden.find(h => h.id === data.id)) return { ok:true, msg:`@${data.username} já está oculto.` };
+    cfg.hidden.push({ id:data.id, username:data.username, display_name:data.display_name||data.username });
+    await _gcSave(cfg);
+    return { ok:true, msg:`@${data.username} ocultado com sucesso.` };
+  }
+
+  if (action === 'show') {
+    const target = (parts[1]||'').replace('@','').toLowerCase();
+    if (!target) return { ok:false, msg:'Uso: .show @username' };
+    const cfg = {..._gcCache};
+    const prev = (cfg.hidden||[]).length;
+    cfg.hidden = (cfg.hidden||[]).filter(h => h.username.toLowerCase() !== target);
+    if (cfg.hidden.length === prev) return { ok:false, msg:`@${target} não estava oculto.` };
+    await _gcSave(cfg);
+    return { ok:true, msg:`@${target} visível novamente.` };
+  }
+
+  if (action === 'status') {
+    const hidden = _gcCache.hidden || [];
+    if (!hidden.length) return { ok:true, msg:'Nenhuma regra ativa.' };
+    return { ok:true, msg:'Ocultos: ' + hidden.map(h=>'@'+h.username).join(', ') };
+  }
+
+  if (action === 'clear') {
+    const out = document.getElementById('cmd-output');
+    if (out) out.innerHTML = '';
+    return { ok:true, msg:'Terminal limpo.' };
+  }
+
+  if (action === 'help') {
+    return { ok:true, msg:'.hide @user — ocultar admin\n.show @user — revelar admin\n.status   — listar regras\n.clear    — limpar terminal' };
+  }
+
+  return { ok:false, msg:`Comando desconhecido: ".${action}"` };
+}
 
 let chatUserKey=null, editProdId=null, curTags=[], prodImg=null, stack=[], sheetUserEmail=null, currentAdmin=null;
 
@@ -1365,7 +1505,7 @@ function goTab(tab) {
   _historyDepth = 0;
   history.replaceState({ screen: TAB_SCREENS[tab], depth: 0, tab }, '');
 
-  const renders = {dash:renderDash, chat:renderChatList, users:renderUsersList, prod:renderProdList};
+  const renders = {dash:renderDash, chat:()=>{ if(_chatMode==='admins') renderAdminChatList(); else renderChatList(); }, users:renderUsersList, prod:renderProdList};
 
   document.querySelectorAll('.bn-item').forEach(el => {
     const oc = el.getAttribute('onclick') || '';
@@ -1447,6 +1587,9 @@ function updateSettingsScreen() {
   const nm = document.getElementById('notif-msg-toggle'); if(nm) nm.checked = prefs.msg !== false;
   const ns = document.getElementById('notif-sale-toggle'); if(ns) ns.checked = !!prefs.sale;
   const nu = document.getElementById('notif-user-toggle'); if(nu) nu.checked = !!prefs.user;
+  // Terminal — só para admins não-restritos
+  const cmdSec = document.getElementById('cmd-section');
+  if (cmdSec) cmdSec.style.display = _isRestricted() ? 'none' : '';
   // Sessions count
   const sessions = LS.get('ghost_admin_sessions') || [];
   const cnt = document.getElementById('set-sess-count');
@@ -1562,6 +1705,7 @@ async function finishSetup() {
 
 function enterApp() {
   applyProfile();
+  _gcLoad(); // carrega regras de visibilidade
   // Save to sessions list
   const sessions = LS.get('ghost_admin_sessions') || [];
   const exists = sessions.find(s => s.id === currentAdmin.id);
@@ -1725,7 +1869,7 @@ async function renderChatList() {
     const isMe = asgn && asgn.admin_name === myName;
     const preview = last.role==='admin' ? `<span style="color:var(--muted)">Você: </span>${esc(last.message||'')}` : esc(last.message||'');
     let assignLine = '';
-    if (asgn) {
+    if (asgn && !_isHiddenByName(asgn.admin_name)) {
       const cls = isMe ? 'mine' : 'other';
       const label = isMe ? 'Você' : esc(asgn.admin_name);
       assignLine = `<div><span class="ci-assign-chip ${cls}"><svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>${label}</span></div>`;
@@ -1869,11 +2013,12 @@ function setChatMode(mode) {
 async function renderAdminChatList() {
   const {data: admins} = await db.from('admins').select('*').neq('id', currentAdmin.id);
   const el = document.getElementById('chat-list');
-  if (!admins?.length) { el.innerHTML = '<div class="empty">Nenhum outro admin cadastrado</div>'; return; }
+  const visible = (admins||[]).filter(a => !_isHiddenById(a.id));
+  if (!visible.length) { el.innerHTML = '<div class="empty">Nenhum outro admin cadastrado</div>'; return; }
 
   // Busca última mensagem de cada conversa
   const myId = currentAdmin.id;
-  const html = await Promise.all(admins.map(async a => {
+  const html = await Promise.all(visible.map(async a => {
     const {data: msgs} = await db.from('admin_chats')
       .select('*')
       .or(`and(sender_id.eq.${myId},receiver_id.eq.${a.id}),and(sender_id.eq.${a.id},receiver_id.eq.${myId})`)
@@ -1885,7 +2030,7 @@ async function renderAdminChatList() {
     const unread = unreadData?.length || 0;
     const preview = last ? (last.sender_id === myId ? `<span style="color:var(--muted)">Você: </span>${esc(last.message)}` : esc(last.message)) : '<span style="color:var(--muted)">Sem mensagens</span>';
     const timeStr = last ? fmtT(last.created_at) : '';
-    return `<div class="admin-item" onclick="openAdminChat('${a.id}')">
+    return `<div class="admin-item" onclick="openAdminProfile('${a.id}')">
       <div class="ai-av">${a.avatar_url ? `<img src="${a.avatar_url}">` : (a.display_name||a.username||'?')[0].toUpperCase()}</div>
       <div class="ai-body">
         <div class="ai-name">${esc(a.display_name||a.username)}</div>
@@ -1898,6 +2043,38 @@ async function renderAdminChatList() {
 }
 
 let _adminChatPartnerId = null;
+
+async function openAdminProfile(adminId) {
+  const {data: a} = await db.from('admins').select('*').eq('id', adminId).single();
+  if (!a) return;
+  const avHtml = a.avatar_url
+    ? `<img src="${a.avatar_url}" style="width:72px;height:72px;border-radius:36px;object-fit:cover">`
+    : `<div style="width:72px;height:72px;border-radius:36px;background:var(--accent-cont);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--accent)">${(a.display_name||a.username||'?')[0].toUpperCase()}</div>`;
+  // unread count
+  const {data: unreadData} = await db.from('admin_chats').select('id').eq('sender_id', adminId).eq('receiver_id', currentAdmin.id).eq('read', false);
+  const unread = unreadData?.length || 0;
+  const unreadBadge = unread ? `<span style="background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;margin-left:6px">${unread}</span>` : '';
+  showModal('', '', [
+    {label:'Mensagem', cls:'mb-ok', fn:()=>{ closeModal(); openAdminChat(adminId); }},
+    {label:'Fechar', cls:'mb-cancel', fn:closeModal},
+  ]);
+  requestAnimationFrame(() => {
+    const title = document.getElementById('m-title');
+    const sub = document.getElementById('m-sub');
+    if (title) { title.style.display='none'; }
+    if (sub) sub.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0 4px">
+        ${avHtml}
+        <div style="font-size:17px;font-weight:600;color:var(--fg)">${esc(a.display_name||a.username)}</div>
+        <div style="font-size:13px;color:var(--muted)">@${esc(a.username)}</div>
+        <div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--accent)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+          Admin${unreadBadge}
+        </div>
+      </div>`;
+  });
+}
+
 async function openAdminChat(adminId) {
   _adminChatPartnerId = adminId;
   const {data: partner} = await db.from('admins').select('*').eq('id', adminId).single();
@@ -2100,12 +2277,16 @@ function startRealtimeChat() {
     })
     .on('postgres_changes', {event:'UPDATE', schema:'public', table:'chat_assignments'}, () => {
       if (document.getElementById('s-chat-view').classList.contains('on') && chatUserKey) loadAssignment(chatUserKey);
-      if (document.getElementById('s-chat').classList.contains('on')) renderChatList();
+      if (document.getElementById('s-chat').classList.contains('on')) {
+        if (_chatMode === 'admins') renderAdminChatList(); else renderChatList();
+      }
     })
     .subscribe();
 
   setInterval(() => {
-    if (document.getElementById('s-chat').classList.contains('on')) renderChatList();
+    if (document.getElementById('s-chat').classList.contains('on')) {
+      if (_chatMode === 'admins') renderAdminChatList(); else renderChatList();
+    }
     if (document.getElementById('s-dash').classList.contains('on')) renderDash();
   }, 6000);
 }
@@ -2114,7 +2295,9 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && currentAdmin) {
     startRealtimeChat();
     if (document.getElementById('s-chat-view').classList.contains('on') && chatUserKey) renderMsgs();
-    if (document.getElementById('s-chat').classList.contains('on')) renderChatList();
+    if (document.getElementById('s-chat').classList.contains('on')) {
+      if (_chatMode === 'admins') renderAdminChatList(); else renderChatList();
+    }
     if (document.getElementById('s-dash').classList.contains('on')) renderDash();
   }
 });
@@ -2432,7 +2615,11 @@ function showModal(title,sub,btns){
   btns.forEach(b=>{const el=document.createElement('button');el.className=b.cls;el.textContent=b.label;el.onclick=b.fn;c.appendChild(el);});
   document.getElementById('modal').classList.add('on');
 }
-function closeModal(){document.getElementById('modal').classList.remove('on');}
+function closeModal(){
+  document.getElementById('modal').classList.remove('on');
+  const title = document.getElementById('m-title');
+  if (title) title.style.display = '';
+}
 let _tt;
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),2800);}
 
