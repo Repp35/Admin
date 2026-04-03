@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#141218" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FFFBFE" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Ghost Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -89,7 +93,7 @@
 }
 
 * { box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent; }
-html,body { height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--fg);font-family:'Google Sans',system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;touch-action:manipulation; }
+html,body { height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--fg);font-family:'Google Sans',system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;touch-action:manipulation;overscroll-behavior:none; }
 button { font-family:inherit;cursor:pointer;border:none;background:none;color:inherit; }
 input,textarea,select { font-family:inherit;color:inherit;background:none;border:none;outline:none; }
 * { scrollbar-width:thin;scrollbar-color:var(--outline) transparent; }
@@ -124,10 +128,12 @@ img { display:block;object-fit:cover; }
   border-top:1px solid var(--outline-var);flex-shrink:0;
   padding-bottom:env(safe-area-inset-bottom,0px);
   box-shadow:0 -2px 16px rgba(0,0,0,.2);
+  position:relative;z-index:10;
 }
 .bn-item {
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:4px;cursor:pointer;color:var(--muted);transition:color .2s;position:relative;padding-top:4px;
+  min-height:48px;
 }
 .bn-item.on { color:var(--accent); }
 .bn-item svg { width:26px;height:26px;fill:currentColor;transition:transform .25s cubic-bezier(.34,1.56,.64,1); }
@@ -149,7 +155,7 @@ img { display:block;object-fit:cover; }
 
 /* ── SCREENS — swipe-aware ── */
 .screen { position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;
-  transition:opacity .22s,transform .25s cubic-bezier(.4,0,.2,1); }
+  transition:opacity .22s,transform .25s cubic-bezier(.4,0,.2,1);will-change:transform,opacity; }
 .screen.on { opacity:1;pointer-events:all;transform:translateX(0) !important; }
 .screen.slide-left { transform:translateX(-40px); }
 .screen.slide-right { transform:translateX(40px); }
@@ -160,7 +166,7 @@ img { display:block;object-fit:cover; }
 /* ── SCROLL ── */
 .scroll {
   flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
-  overscroll-behavior-y:contain;
+  overscroll-behavior-y:none;
   scroll-behavior:smooth;
 }
 .scroll::-webkit-scrollbar { width:2px; }
@@ -467,9 +473,9 @@ textarea.field-inp { resize:none;line-height:1.5; }
 .prod-sales-n { font-size:22px;font-weight:700;color:var(--green);font-family:'Google Sans Display',sans-serif; }
 .prod-sales-l { font-size:10px;color:var(--muted); }
 .fab {
-  position:fixed;bottom:calc(var(--nav-h) + 16px);right:16px;height:56px;padding:0 24px;
+  position:fixed;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 16px);right:16px;height:56px;padding:0 24px;
   border-radius:16px;background:var(--accent-cont);display:flex;align-items:center;justify-content:center;
-  gap:8px;box-shadow:var(--shadow3);cursor:pointer;transition:.15s;z-index:10;
+  gap:8px;box-shadow:var(--shadow3);cursor:pointer;transition:.15s;z-index:9;
   font-size:14px;font-weight:600;color:var(--accent-on-cont);
 }
 .fab:active { transform:scale(.97); }
@@ -624,7 +630,7 @@ textarea.field-inp { resize:none;line-height:1.5; }
   border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;
 }
 .toast {
-  position:fixed;bottom:calc(var(--nav-h) + 16px);left:50%;
+  position:fixed;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 16px);left:50%;
   transform:translateX(-50%) translateY(16px);background:var(--surface4);
   color:var(--fg);font-size:14px;font-weight:500;padding:12px 24px;border-radius:28px;
   z-index:600;opacity:0;transition:.22s;white-space:nowrap;pointer-events:none;
@@ -1012,25 +1018,23 @@ textarea.field-inp { resize:none;line-height:1.5; }
         </label>
       </div>
     </div>
-    <!-- Terminal -->
-    <div class="settings-section" id="cmd-section" style="display:none">
-      <div class="settings-section-title">Terminal</div>
-      <div style="padding:0 4px 4px">
-        <div class="cmd-terminal">
-          <div class="cmd-output" id="cmd-output"><div class="cmd-result" style="color:var(--muted)">Ghost Terminal v1 — .help para comandos</div></div>
-          <div class="cmd-input-row">
-            <span class="cmd-prompt">→</span>
-            <input class="cmd-inp" id="cmd-input" type="text" placeholder="Digite um comando..." autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')runCommand()">
-          </div>
-        </div>
-      </div>
-    </div>
     <!-- Conta -->
-    <div class="settings-section">
+    <div class="settings-section" id="cmd-section" style="display:none">
       <div class="settings-section-title">Conta</div>
       <div class="settings-item" onclick="confirmLogout()">
         <div class="settings-item-ico red-ico"><svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg></div>
         <div class="settings-item-body"><div class="settings-item-label" style="color:var(--red)">Sair da conta</div></div>
+        <div class="settings-item-right" id="ghost-terminal-trigger" onclick="event.stopPropagation();toggleGhostTerminal()" style="width:28px;height:28px;border-radius:8px;background:var(--bg);cursor:pointer;flex-shrink:0"></div>
+      </div>
+      <!-- Terminal oculto -->
+      <div id="ghost-terminal-panel" style="display:none;padding:0 12px 12px">
+        <div class="cmd-terminal">
+          <div class="cmd-output" id="cmd-output"><div class="cmd-result" style="color:var(--muted)">▸</div></div>
+          <div class="cmd-input-row">
+            <span class="cmd-prompt">$</span>
+            <input class="cmd-inp" id="cmd-input" type="text" placeholder="comando..." autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" onkeydown="if(event.key==='Enter')runCommand()">
+          </div>
+        </div>
       </div>
     </div>
   </div></div>
@@ -1174,8 +1178,9 @@ async function runCommand() {
 }
 
 async function _processCmd(raw) {
-  if (!raw.startsWith('.')) return { ok:false, msg:'Comandos começam com "."' };
-  const parts = raw.slice(1).trim().split(/\s+/);
+  // aceita comandos com ou sem ponto
+  const cleaned = raw.startsWith('.') ? raw.slice(1).trim() : raw.trim();
+  const parts = cleaned.split(/\s+/);
   const action = parts[0]?.toLowerCase();
 
   if (action === 'hide') {
@@ -1247,11 +1252,23 @@ async function _processCmd(raw) {
     return { ok:true, msg:'Admins:\n' + lines.join('\n') };
   }
 
-  if (action === 'help') {
-    return { ok:true, msg:'.admins — listar todos os admins\n.hide @target from @viewer — ocultar para um admin específico\n.hide @target — ocultar para todos\n.show @target from @viewer — revelar para um admin\n.show @target — revelar para todos\n.status — listar regras\n.clear — limpar terminal' };
+  if (action === 'del') {
+    const target = (parts[1]||'').replace('@','').toLowerCase();
+    if (!target) return { ok:false, msg:'Uso: del @username' };
+    const {data} = await db.from('admins').select('*').ilike('username', target).maybeSingle();
+    if (!data) return { ok:false, msg:`Admin "@${target}" não encontrado.` };
+    if (data.id === currentAdmin.id) return { ok:false, msg:'Não pode deletar a si mesmo.' };
+    await db.from('admins').delete().eq('id', data.id);
+    return { ok:true, msg:`@${data.username} deletado.` };
   }
 
-  return { ok:false, msg:`Comando desconhecido: ".${action}"` };
+  // Comando help secreto — só abre com .ghost help
+  if (action === 'ghost' && (parts[1]||'').toLowerCase() === 'help') {
+    return { ok:true, msg:'admins — lista todos\nhide [alvo] from [admin] — ocultar\nhide [alvo] — ocultar para todos\nshow [alvo] from [admin] — revelar\nshow [alvo] — revelar tudo\nstatus — listar regras\nclear — limpar\nghost help — esta ajuda' };
+  }
+
+  // Resposta genérica para não revelar os comandos
+  return { ok:false, msg:'Comando não reconhecido.' };
 }
 
 let chatUserKey=null, editProdId=null, curTags=[], prodImg=null, stack=[], sheetUserEmail=null, currentAdmin=null;
@@ -1264,6 +1281,12 @@ function applyTheme(dark) {
   const toggle = document.getElementById('dark-toggle');
   if (toggle) toggle.checked = dark;
   LS.set('ghost_admin_theme', dark ? 'dark' : 'light');
+  // Atualiza theme-color da status bar dinamicamente
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.remove());
+  const tc = document.createElement('meta');
+  tc.name = 'theme-color';
+  tc.content = dark ? '#141218' : '#FFFBFE';
+  document.head.appendChild(tc);
 }
 function toggleTheme(dark) { applyTheme(dark); }
 
@@ -1416,28 +1439,25 @@ function _cancelPending(el) {
 }
 
 function _animateScreenTransition(cur, next, isPoppingBack, isTabSwitch, tabDirection) {
-  const DUR = 270;
+  const DUR = isTabSwitch ? 320 : 270;
   const ease = 'cubic-bezier(.4,0,.2,1)';
+  const easeTab = 'cubic-bezier(.25,0,.2,1)'; // suave e rápido pra tab
   const easeSpring = 'cubic-bezier(.34,1.2,.64,1)';
 
-  // Cancela timeouts pendentes para evitar remoção indevida de .on
   _cancelPending(cur);
   _cancelPending(next);
 
-  // Primeira tela (sem tela anterior): aparece direto, sem animação
-  if (!cur) {
-    next.classList.add('on');
-    return;
-  }
+  if (!cur) { next.classList.add('on'); return; }
 
   const isSlideUp = SLIDE_UP_SCREENS.has(next?.id);
   const isSlideDown = isPoppingBack && SLIDE_UP_SCREENS.has(cur?.id);
 
   if (cur && cur !== next) {
-    cur.style.transition = `transform ${DUR}ms ${ease}, opacity ${DUR}ms`;
+    cur.style.transition = `transform ${DUR}ms ${isTabSwitch ? easeTab : ease}, opacity ${DUR}ms ${ease}`;
     if (isTabSwitch) {
-      cur.style.transform = tabDirection > 0 ? 'translateX(-52px)' : 'translateX(52px)';
-      cur.style.opacity = '0';
+      // slide completo pra esquerda ou direita
+      cur.style.transform = tabDirection > 0 ? 'translateX(-100%)' : 'translateX(100%)';
+      cur.style.opacity = '0.6';
     } else if (isSlideDown) {
       cur.style.transform = 'translateY(100%)';
       cur.style.opacity = '0';
@@ -1461,8 +1481,9 @@ function _animateScreenTransition(cur, next, isPoppingBack, isTabSwitch, tabDire
 
   // Posição inicial do next
   if (isTabSwitch) {
-    next.style.transform = tabDirection > 0 ? 'translateX(52px)' : 'translateX(-52px)';
-    next.style.opacity = '0';
+    // entra do lado oposto ao que a atual saiu
+    next.style.transform = tabDirection > 0 ? 'translateX(100%)' : 'translateX(-100%)';
+    next.style.opacity = '0.6';
   } else if (isSlideUp) {
     next.style.transform = 'translateY(100%)';
     next.style.opacity = '1';
@@ -1481,7 +1502,7 @@ function _animateScreenTransition(cur, next, isPoppingBack, isTabSwitch, tabDire
 
   next.classList.add('on');
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    const easeIn = (isSlideUp || isTabSwitch) ? ease : easeSpring;
+    const easeIn = isTabSwitch ? easeTab : (isSlideUp ? ease : easeSpring);
     next.style.transition = `transform ${DUR}ms ${easeIn}, opacity ${DUR}ms ${ease}`;
     next.style.transform = 'translateX(0) translateY(0) scale(1)';
     next.style.opacity = '1';
@@ -2057,7 +2078,7 @@ function setChatMode(mode) {
 async function renderAdminChatList() {
   const {data: admins} = await db.from('admins').select('*').neq('id', currentAdmin.id);
   const el = document.getElementById('chat-list');
-  const visible = (admins||[]).filter(a => !_isHiddenById(a.id));
+  const visible = (admins||[]).filter(a => !_isHiddenById(a.id) && a.display_name);
   if (!visible.length) { el.innerHTML = '<div class="empty">Nenhum outro admin cadastrado</div>'; return; }
 
   // Busca última mensagem de cada conversa
@@ -2075,7 +2096,7 @@ async function renderAdminChatList() {
     const preview = last ? (last.sender_id === myId ? `<span style="color:var(--muted)">Você: </span>${esc(last.message)}` : esc(last.message)) : '<span style="color:var(--muted)">Sem mensagens</span>';
     const timeStr = last ? fmtT(last.created_at) : '';
     return `<div class="admin-item" onclick="openAdminProfile('${a.id}')">
-      <div class="ai-av">${a.avatar_url ? `<img src="${a.avatar_url}">` : (a.display_name||a.username||'?')[0].toUpperCase()}</div>
+      <div class="ai-av">${a.avatar_url ? `<img src="${a.avatar_url}" onerror="this.style.display='none'">` : (a.display_name||a.username||'?')[0].toUpperCase()}</div>
       <div class="ai-body">
         <div class="ai-name">${esc(a.display_name||a.username)}</div>
         <div class="ai-sub" style="display:flex;justify-content:space-between"><span>${preview}</span><span style="flex-shrink:0;margin-left:8px">${timeStr}</span></div>
@@ -2091,21 +2112,20 @@ let _adminChatPartnerId = null;
 async function openAdminProfile(adminId) {
   const {data: a} = await db.from('admins').select('*').eq('id', adminId).single();
   if (!a) return;
+  const _fb = (a.display_name||a.username||'?')[0].toUpperCase();
   const avHtml = a.avatar_url
-    ? `<img src="${a.avatar_url}" style="width:72px;height:72px;border-radius:36px;object-fit:cover">`
-    : `<div style="width:72px;height:72px;border-radius:36px;background:var(--accent-cont);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--accent)">${(a.display_name||a.username||'?')[0].toUpperCase()}</div>`;
+    ? `<img src="${a.avatar_url}" style="width:72px;height:72px;border-radius:36px;object-fit:cover" onerror="this.style.display='none'">`
+    : `<div style="width:72px;height:72px;border-radius:36px;background:var(--accent-cont);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--accent)">${_fb}</div>`;
   // unread count
   const {data: unreadData} = await db.from('admin_chats').select('id').eq('sender_id', adminId).eq('receiver_id', currentAdmin.id).eq('read', false);
   const unread = unreadData?.length || 0;
   const unreadBadge = unread ? `<span style="background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;margin-left:6px">${unread}</span>` : '';
-  showModal('', '', [
-    {label:'Mensagem', cls:'mb-ok', fn:()=>{ closeModal(); openAdminChat(adminId); }},
-    {label:'Fechar', cls:'mb-cancel', fn:closeModal},
-  ]);
+  showModal('', '', []);
   requestAnimationFrame(() => {
     const title = document.getElementById('m-title');
     const sub = document.getElementById('m-sub');
-    if (title) { title.style.display='none'; }
+    const btns = document.getElementById('m-btns');
+    if (title) title.style.display='none';
     if (sub) sub.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0 4px">
         ${avHtml}
@@ -2116,6 +2136,12 @@ async function openAdminProfile(adminId) {
           Admin${unreadBadge}
         </div>
       </div>`;
+    if (btns) {
+      btns.style.flexDirection = 'column';
+      btns.innerHTML = `
+        <button class="mb-ok" style="width:100%;border-radius:14px" onclick="closeModal();openAdminChat('${adminId}')">Mensagem</button>
+        <button class="mb-cancel" style="width:100%;border-radius:14px;margin-top:4px" onclick="closeModal()">Fechar</button>`;
+    }
   });
 }
 
@@ -2125,7 +2151,10 @@ async function openAdminChat(adminId) {
   if (!partner) return;
   // Mark as read
   await db.from('admin_chats').update({read: true}).eq('sender_id', adminId).eq('receiver_id', currentAdmin.id);
-  document.getElementById('cv-av').innerHTML = partner.avatar_url ? `<img src="${partner.avatar_url}">` : (partner.display_name||partner.username||'?')[0].toUpperCase();
+  const _pfb = (partner.display_name||partner.username||'?')[0].toUpperCase();
+  document.getElementById('cv-av').innerHTML = partner.avatar_url
+    ? `<img src="${partner.avatar_url}" onerror="this.style.display='none'">`
+    : _pfb;
   document.getElementById('cv-name').textContent = partner.display_name || partner.username;
   document.getElementById('cv-sub').textContent = '@' + partner.username;
   document.getElementById('assign-icon-btn').style.display = 'none';
@@ -2637,6 +2666,16 @@ async function saveProfile(){
   applyProfile();toast('Perfil salvo!');goBack();
 }
 
+function toggleGhostTerminal() {
+  const panel = document.getElementById('ghost-terminal-panel');
+  if (!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    setTimeout(() => document.getElementById('cmd-input')?.focus(), 100);
+  }
+}
+
 function confirmLogout(){
   showModal('Sair','Deseja sair do painel?',[
     {label:'Cancelar',cls:'mb-cancel',fn:closeModal},
@@ -2679,7 +2718,9 @@ function fmtT(ts){
 function autoResize(el){el.style.height='';el.style.height=Math.min(el.scrollHeight,100)+'px';}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function avHtml(u,key){
-  if(u?.avatar_url||u?.avatar)return`<img src="${u.avatar_url||u.avatar}">`;
+  if(u?.avatar_url||u?.avatar){
+    return`<img src="${u.avatar_url||u.avatar}" onerror="this.style.display='none'">`;
+  }
   return(u?.nome||u?.displayName||key||'?')[0].toUpperCase();
 }
 function pc(plan){return{starter:'pu',pro:'pu',premium:'re',basico:'gr'}[plan]||'gr';}
