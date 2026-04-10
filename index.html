@@ -1440,6 +1440,15 @@ function _animateScreenTransition(cur, next, isPoppingBack, isTabSwitch, tabDire
   const easeSlide = 'cubic-bezier(.4,0,.2,1)';
   const easeSpring = 'cubic-bezier(.34,1.2,.64,1)';
 
+  // Limpa TODAS as telas indevidamente com .on (previne sobreposição ao navegar rápido)
+  document.querySelectorAll('.screen.on').forEach(el => {
+    if (el !== next && el !== cur) {
+      _cancelPending(el);
+      el.classList.remove('on');
+      el.style.cssText = '';
+    }
+  });
+
   _cancelPending(cur);
   _cancelPending(next);
 
@@ -1831,7 +1840,7 @@ async function renderDash() {
     db.from('chats').select('*',{count:'exact',head:true}),
     db.from('products').select('*',{count:'exact',head:true}).eq('active',true),
     db.from('chats').select('*').order('created_at',{ascending:false}).limit(50),
-    db.from('profiles').select('*').order('created_at',{ascending:false}).limit(8),
+    db.from('profiles_with_email').select('*').order('created_at',{ascending:false}).limit(8),
     db.from('profiles').select('*',{count:'exact',head:true}).gte('created_at', todayStart),
     db.from('chats').select('user_key').eq('role','user').eq('read_by_admin',false),
   ]);
@@ -1862,7 +1871,7 @@ async function renderDash() {
   // Load user data for msg senders not in recentUsers
   const missingKeys = topMsgs.map(m=>m.user_key).filter(k=>!userMap[k]);
   if (missingKeys.length) {
-    const {data:extraUsers} = await db.from('profiles').select('*').in('email', missingKeys);
+    const {data:extraUsers} = await db.from('profiles_with_email').select('*').in('email', missingKeys);
     (extraUsers||[]).forEach(u => userMap[u.email] = u);
   }
 
@@ -1912,7 +1921,7 @@ async function updateBadges() {
 // USERS LIST
 // ════════════════════════════════════════════
 async function renderUsersList() {
-  const {data} = await db.from('profiles').select('*').order('created_at',{ascending:false});
+  const {data} = await db.from('profiles_with_email').select('*').order('created_at',{ascending:false});
   const el = document.getElementById('users-list');
   if (!data?.length) { el.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Nenhum usuário cadastrado</div>'; return; }
   el.innerHTML = data.map(u => `
@@ -1935,9 +1944,17 @@ async function renderUsersList() {
 // CHAT LIST
 // ════════════════════════════════════════════
 async function renderChatList() {
-  const {data:msgs} = await db.from('chats').select('*').order('created_at',{ascending:false});
-  const {data:users} = await db.from('profiles').select('id,nome,plano,avatar_url');
-  const {data:assignments} = await db.from('chat_assignments').select('*');
+  const [{data:msgs, error:msgsErr},{data:users},{data:assignments}] = await Promise.all([
+    db.from('chats').select('*').order('created_at',{ascending:false}),
+    db.from('profiles_with_email').select('id,nome,plano,avatar_url,email'),
+    db.from('chat_assignments').select('*'),
+  ]);
+  if (msgsErr) {
+    console.error('[Ghost Admin] Erro ao carregar chats (pode ser RLS):', msgsErr);
+    const el = document.getElementById('chat-list');
+    el.innerHTML = '<div class="empty" style="color:var(--red)">Erro ao carregar conversas.<br><small>' + (msgsErr.message||msgsErr.code||'Verifique RLS da tabela chats') + '</small></div>';
+    return;
+  }
   const userMap = {}; (users||[]).forEach(u => userMap[u.email] = u);
   const assignMap = {}; (assignments||[]).forEach(a => assignMap[a.user_key] = a);
   const byUser = {};
@@ -1981,7 +1998,7 @@ async function openChatView(userKey) {
   _adminChatPartnerId = null;
   document.getElementById('assign-icon-btn').style.display = 'flex';
   document.getElementById('cv-msgs')._loaded = false;
-  const {data:u} = await db.from('profiles').select('*').eq('email',userKey).single();
+  const {data:u} = await db.from('profiles_with_email').select('*').eq('email',userKey).single();
   document.getElementById('cv-av').innerHTML = avHtml(u||{}, userKey);
   document.getElementById('cv-name').textContent = u?.nome || userKey;
   document.getElementById('cv-sub').textContent = u?.email || '';
@@ -2343,7 +2360,7 @@ function startRealtimeChat() {
       // Só notifica mensagens de usuários
       if (msg && msg.role === 'user') {
         // Busca nome do usuário pra mostrar na notificação
-        db.from('profiles').select('nome').eq('email', msg.user_key).single().then(({data}) => {
+        db.from('profiles_with_email').select('nome').eq('email', msg.user_key).single().then(({data}) => {
           const name = data?.nome || msg.user_key;
           const body = (msg.message || '').slice(0, 80);
           const isChatViewOpen = document.getElementById('s-chat-view').classList.contains('on') && chatUserKey === msg.user_key;
@@ -2376,12 +2393,19 @@ function startRealtimeChat() {
     })
     .subscribe();
 
-  setInterval(() => {
-    if (document.getElementById('s-chat').classList.contains('on')) {
-      if (_chatMode === 'admins') renderAdminChatList(); else renderChatList();
-    }
-    if (document.getElementById('s-dash').classList.contains('on')) renderDash();
-  }, 6000);
+  // Polling de fallback: só roda quando app está visível e não há realtime ativo
+  let _pollInterval = null;
+  function _startPoll() {
+    if (_pollInterval) return;
+    _pollInterval = setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      if (document.getElementById('s-chat').classList.contains('on')) {
+        if (_chatMode === 'admins') renderAdminChatList(); else renderChatList();
+      }
+      if (document.getElementById('s-dash').classList.contains('on')) renderDash();
+    }, 10000); // 10s em vez de 6s — realtime já cobre o resto
+  }
+  _startPoll();
 }
 
 document.addEventListener('visibilitychange', () => {
@@ -2408,7 +2432,7 @@ function confirmDeleteChat() {
 // ════════════════════════════════════════════
 function openUserSheet() { if (chatUserKey) openUserInfo(chatUserKey, true); }
 async function openUserInfo(email, fromChat=false) {
-  const {data:u} = await db.from('profiles').select('*').eq('email',email).single();
+  const {data:u} = await db.from('profiles_with_email').select('*').eq('email',email).single();
   if (!u) return;
   sheetUserEmail = email;
   document.getElementById('su-av').innerHTML = avHtml(u, email);
@@ -2476,7 +2500,7 @@ async function setUserCredits() {
 }
 async function banUser() {
   if (!sheetUserEmail) return;
-  const {data:u} = await db.from('profiles').select('banned').eq('email',sheetUserEmail).single();
+  const {data:u} = await db.from('profiles_with_email').select('banned').eq('email',sheetUserEmail).single();
   const isBanned = u?.banned;
   showModal(isBanned?'Desbanir usuário':'Banir usuário', isBanned?`Reativar acesso de ${sheetUserEmail}?`:`Banir ${sheetUserEmail}?`,[
     {label:'Cancelar',cls:'mb-cancel',fn:closeModal},
@@ -2704,7 +2728,9 @@ function confirmLogout(){
 }
 function doLogout(){
   LS.del('ghost_admin_sess');
-  db.auth.signOut();stack=[];chatUserKey=null;sheetUserEmail=null;currentAdmin=null;
+  // Não usa db.auth.signOut() pois pode quebrar sessão anon e impedir próximo login
+  if(_realtimeChannel){try{db.removeChannel(_realtimeChannel);}catch(e){}  _realtimeChannel=null;}
+  stack=[];chatUserKey=null;sheetUserEmail=null;currentAdmin=null;_chatMode='users';
   ['inp-id','inp-pw','reg-user','reg-pw','inp-dn'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['login-err','reg-err','setup-err'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='';});
   switchAuthTab('login');goScreen('s-setup',false);
