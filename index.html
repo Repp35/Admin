@@ -1762,11 +1762,9 @@ async function tryLogin() {
   const err = document.getElementById('login-err');
   err.textContent = '';
   if (!id || !pw) { err.textContent = 'Preencha todos os campos.'; return; }
-  const email = id.toLowerCase() + '@ghost-admin.internal';
-  const {data: authData, error: authErr} = await db.auth.signInWithPassword({ email, password: pw });
-  if (authErr || !authData?.user) { err.textContent = 'Usuário ou senha incorretos.'; return; }
-  const {data, error} = await db.from('admins').select('*').eq('id', authData.user.id).single();
-  if (error || !data) { err.textContent = 'Erro ao carregar perfil.'; return; }
+  // Busca direto na tabela admins por username + password_hash (sem depender do auth.users)
+  const {data, error} = await db.from('admins').select('*').ilike('username', id).eq('password_hash', pw).single();
+  if (error || !data) { err.textContent = 'Usuário ou senha incorretos.'; return; }
   currentAdmin = data;
   LS.set('ghost_admin_sess', {id: data.id, username: data.username});
   if (!data.display_name) showSetupStep(); else enterApp();
