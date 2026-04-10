@@ -655,8 +655,8 @@ textarea.field-inp { resize:none;line-height:1.5; }
 .notif-banner svg { width:20px;height:20px;fill:var(--accent);flex-shrink:0; }
 .notif-banner-body { flex:1;color:var(--accent-on-cont); }
 .notif-banner-btn {
-  font-size:13px;font-weight:600;color:var(--accent);padding:6px 12px;
-  border-radius:99px;background:rgba(255,255,255,.5);flex-shrink:0;
+  font-size:13px;font-weight:600;color:var(--accent-on-cont);padding:6px 12px;
+  border-radius:99px;background:var(--surface);border:1.5px solid var(--accent);flex-shrink:0;
 }
 /* ═══ CHAT MODE SELECTOR ═══ */
 .chat-mode-bar { display:flex;align-items:center;justify-content:center;padding:6px 16px 2px; }
@@ -1463,33 +1463,56 @@ function _animateScreenTransition(cur, next, isPoppingBack, isTabSwitch, tabDire
   const isSlideDown = isPoppingBack && SLIDE_UP_SCREENS.has(cur?.id);
 
   if (isTabSwitch) {
-    // ── TAB SWITCH: slide horizontal completo ──
+    // ── TAB SWITCH: anima só o .scroll (conteúdo do meio), topbar e bnav ficam fixas ──
     const goRight = tabDirection > 0;
+    const curScroll = cur.querySelector('.scroll');
+    const nextScroll = next.querySelector('.scroll');
 
-    // Posiciona next fora da tela imediatamente (sem transição)
-    next.style.transition = 'none';
-    next.style.transform = goRight ? 'translateX(100%)' : 'translateX(-100%)';
-    next.style.opacity = '1';
     next.classList.add('on');
 
-    // Força reflow para o browser registrar a posição inicial
-    next.getBoundingClientRect();
+    if (curScroll && nextScroll) {
+      // Anima só o conteúdo
+      nextScroll.style.transition = 'none';
+      nextScroll.style.transform = goRight ? 'translateX(100%)' : 'translateX(-100%)';
+      nextScroll.style.opacity = '0.6';
+      nextScroll.getBoundingClientRect();
 
-    // Anima ambos juntos
-    const tr = `transform ${DUR_TAB}ms ${easeSlide}`;
-    cur.style.transition = tr;
-    cur.style.transform = goRight ? 'translateX(-100%)' : 'translateX(100%)';
-    next.style.transition = tr;
-    next.style.transform = 'translateX(0)';
+      const tr = `transform ${DUR_TAB}ms ${easeSlide}, opacity ${DUR_TAB}ms ${easeSlide}`;
+      curScroll.style.transition = tr;
+      curScroll.style.transform = goRight ? 'translateX(-40%)' : 'translateX(40%)';
+      curScroll.style.opacity = '0';
+      nextScroll.style.transition = tr;
+      nextScroll.style.transform = 'translateX(0)';
+      nextScroll.style.opacity = '1';
 
-    const t = setTimeout(() => {
-      cur.classList.remove('on');
-      cur.style.cssText = '';
-      next.style.cssText = '';
-      _cleanupTimers.delete(cur);
-      _cleanupTimers.delete(next);
-    }, DUR_TAB + 20);
-    _cleanupTimers.set(cur, t);
+      const t = setTimeout(() => {
+        cur.classList.remove('on');
+        cur.style.cssText = '';
+        if (curScroll) curScroll.style.cssText = '';
+        if (nextScroll) nextScroll.style.cssText = '';
+        _cleanupTimers.delete(cur);
+        _cleanupTimers.delete(next);
+      }, DUR_TAB + 20);
+      _cleanupTimers.set(cur, t);
+    } else {
+      // Fallback sem scroll wrapper
+      next.style.transition = 'none';
+      next.style.transform = goRight ? 'translateX(100%)' : 'translateX(-100%)';
+      next.getBoundingClientRect();
+      const tr = `transform ${DUR_TAB}ms ${easeSlide}`;
+      cur.style.transition = tr;
+      cur.style.transform = goRight ? 'translateX(-100%)' : 'translateX(100%)';
+      next.style.transition = tr;
+      next.style.transform = 'translateX(0)';
+      const t = setTimeout(() => {
+        cur.classList.remove('on');
+        cur.style.cssText = '';
+        next.style.cssText = '';
+        _cleanupTimers.delete(cur);
+        _cleanupTimers.delete(next);
+      }, DUR_TAB + 20);
+      _cleanupTimers.set(cur, t);
+    }
     return;
   }
 
