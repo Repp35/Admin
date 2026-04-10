@@ -156,8 +156,10 @@ img { display:block;object-fit:cover; }
 }
 
 /* ── SCREENS — swipe-aware ── */
-.screen { position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;will-change:transform,opacity; }
+.screen { position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none; }
 .screen.on { opacity:1;pointer-events:all; }
+/* Container de conteúdo animável (só o miolo, sem topbar/bnav) */
+.tab-content { flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column; }
 
 /* ── SCROLL ── */
 .scroll {
@@ -752,7 +754,7 @@ textarea.field-inp { resize:none;line-height:1.5; }
     <div class="tb-title">Início</div>
     <div class="av" id="dash-av" onclick="goScreen('s-settings')">A</div>
   </div>
-  <div class="scroll"><div class="pad">
+  <div class="tab-content"><div class="scroll"><div class="pad">
     <div id="notif-banner-dash"></div>
     <div>
       <div class="section-label">Resumo</div>
@@ -791,7 +793,7 @@ textarea.field-inp { resize:none;line-height:1.5; }
       <div class="section-label">Usuários recentes</div>
       <div class="card" id="dash-users"><div class="loading-state">Carregando…</div></div>
     </div>
-  </div></div>
+  </div></div></div>
   <div class="bnav">
     <div class="bn-item on" onclick="goTab('dash')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="bn-label">Início</span></div>
     <div class="bn-item" onclick="goTab('chat')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><span class="bn-badge" id="badge1" style="display:none">0</span><span class="bn-label">Suporte</span></div>
@@ -803,7 +805,7 @@ textarea.field-inp { resize:none;line-height:1.5; }
 <!-- ══ CHAT LIST ══ -->
 <div class="screen" id="s-chat">
   <div class="topbar"><div class="tb-title">Suporte</div><div class="av" id="chat-av" onclick="goScreen('s-settings')">A</div></div>
-  <div class="chat-mode-bar">
+  <div class="tab-content"><div class="chat-mode-bar">
     <div class="chat-mode-tabs">
       <div class="chat-mode-pill active" id="mode-users" onclick="setChatMode('users')">
         <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
@@ -815,7 +817,7 @@ textarea.field-inp { resize:none;line-height:1.5; }
       </div>
     </div>
   </div>
-  <div class="scroll"><div class="chat-pad" id="chat-list"><div class="loading-state">Carregando…</div></div></div>
+  <div class="scroll"><div class="chat-pad" id="chat-list"><div class="loading-state">Carregando…</div></div></div></div>
   <div class="bnav">
     <div class="bn-item" onclick="goTab('dash')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="bn-label">Início</span></div>
     <div class="bn-item on" onclick="goTab('chat')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><span class="bn-badge" id="badge2" style="display:none">0</span><span class="bn-label">Suporte</span></div>
@@ -886,7 +888,7 @@ textarea.field-inp { resize:none;line-height:1.5; }
 <!-- ══ USUÁRIOS ══ -->
 <div class="screen" id="s-users">
   <div class="topbar"><div class="tb-title">Usuários</div><div class="av" id="users-av" onclick="goScreen('s-settings')">A</div></div>
-  <div class="scroll"><div class="users-pad" id="users-list"><div class="loading-state">Carregando…</div></div></div>
+  <div class="tab-content"><div class="scroll"><div class="users-pad" id="users-list"><div class="loading-state">Carregando…</div></div></div></div>
   <div class="bnav">
     <div class="bn-item" onclick="goTab('dash')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="bn-label">Início</span></div>
     <div class="bn-item" onclick="goTab('chat')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><span class="bn-badge" id="badge4" style="display:none">0</span><span class="bn-label">Suporte</span></div>
@@ -898,9 +900,9 @@ textarea.field-inp { resize:none;line-height:1.5; }
 <!-- ══ PRODUTOS ══ -->
 <div class="screen" id="s-prod">
   <div class="topbar"><div class="tb-title">Produtos</div><div class="av" id="prod-av" onclick="goScreen('s-settings')">A</div></div>
-  <div class="scroll"><div class="prod-pad" id="prod-list"><div class="loading-state">Carregando…</div></div></div>
+  <div class="tab-content"><div class="scroll"><div class="prod-pad" id="prod-list"><div class="loading-state">Carregando…</div></div></div>
   <div class="fab" onclick="openProdForm(null)"><svg viewBox="0 0 24 24"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"/></svg>Novo produto</div>
-  <div class="bnav">
+  </div><div class="bnav">
     <div class="bn-item" onclick="goTab('dash')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="bn-label">Início</span></div>
     <div class="bn-item" onclick="goTab('chat')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><span class="bn-badge" id="badge3" style="display:none">0</span><span class="bn-label">Suporte</span></div>
     <div class="bn-item" onclick="goTab('users')"><div class="bn-pill"></div><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span class="bn-label">Usuários</span></div>
@@ -1463,55 +1465,35 @@ function _animateScreenTransition(cur, next, isPoppingBack, isTabSwitch, tabDire
   const isSlideDown = isPoppingBack && SLIDE_UP_SCREENS.has(cur?.id);
 
   if (isTabSwitch) {
-    // ── TAB SWITCH: anima só o .scroll (conteúdo do meio), topbar e bnav ficam fixas ──
+    // ── TAB SWITCH: anima só .tab-content, topbar e bnav ficam fixas ──
     const goRight = tabDirection > 0;
-    const curScroll = cur.querySelector('.scroll');
-    const nextScroll = next.querySelector('.scroll');
+    const curContent = cur.querySelector('.tab-content');
+    const nextContent = next.querySelector('.tab-content');
 
     next.classList.add('on');
 
-    if (curScroll && nextScroll) {
-      // Anima só o conteúdo
-      nextScroll.style.transition = 'none';
-      nextScroll.style.transform = goRight ? 'translateX(100%)' : 'translateX(-100%)';
-      nextScroll.style.opacity = '0.6';
-      nextScroll.getBoundingClientRect();
+    if (curContent && nextContent) {
+      nextContent.style.transition = 'none';
+      nextContent.style.transform = goRight ? 'translateX(100%)' : 'translateX(-100%)';
+      nextContent.getBoundingClientRect();
 
-      const tr = `transform ${DUR_TAB}ms ${easeSlide}, opacity ${DUR_TAB}ms ${easeSlide}`;
-      curScroll.style.transition = tr;
-      curScroll.style.transform = goRight ? 'translateX(-40%)' : 'translateX(40%)';
-      curScroll.style.opacity = '0';
-      nextScroll.style.transition = tr;
-      nextScroll.style.transform = 'translateX(0)';
-      nextScroll.style.opacity = '1';
+      const tr = `transform ${DUR_TAB}ms ${easeSlide}`;
+      curContent.style.transition = tr;
+      curContent.style.transform = goRight ? 'translateX(-30%)' : 'translateX(30%)';
+      nextContent.style.transition = tr;
+      nextContent.style.transform = 'translateX(0)';
 
       const t = setTimeout(() => {
         cur.classList.remove('on');
-        cur.style.cssText = '';
-        if (curScroll) curScroll.style.cssText = '';
-        if (nextScroll) nextScroll.style.cssText = '';
+        curContent.style.cssText = '';
+        nextContent.style.cssText = '';
         _cleanupTimers.delete(cur);
         _cleanupTimers.delete(next);
       }, DUR_TAB + 20);
       _cleanupTimers.set(cur, t);
     } else {
-      // Fallback sem scroll wrapper
-      next.style.transition = 'none';
-      next.style.transform = goRight ? 'translateX(100%)' : 'translateX(-100%)';
-      next.getBoundingClientRect();
-      const tr = `transform ${DUR_TAB}ms ${easeSlide}`;
-      cur.style.transition = tr;
-      cur.style.transform = goRight ? 'translateX(-100%)' : 'translateX(100%)';
-      next.style.transition = tr;
-      next.style.transform = 'translateX(0)';
-      const t = setTimeout(() => {
-        cur.classList.remove('on');
-        cur.style.cssText = '';
-        next.style.cssText = '';
-        _cleanupTimers.delete(cur);
-        _cleanupTimers.delete(next);
-      }, DUR_TAB + 20);
-      _cleanupTimers.set(cur, t);
+      // fallback: troca sem animação
+      cur.classList.remove('on');
     }
     return;
   }
@@ -2138,7 +2120,7 @@ function setChatMode(mode) {
 async function renderAdminChatList() {
   const {data: admins} = await db.from('admins').select('*').neq('id', currentAdmin.id);
   const el = document.getElementById('chat-list');
-  const visible = (admins||[]).filter(a => !_isHiddenById(a.id) && a.display_name);
+  const visible = (admins||[]).filter(a => !_isHiddenById(a.id));
   if (!visible.length) { el.innerHTML = '<div class="empty">Nenhum outro admin cadastrado</div>'; return; }
 
   // Busca última mensagem de cada conversa
